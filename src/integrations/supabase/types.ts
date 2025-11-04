@@ -14,7 +14,117 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      landing_page: {
+        Row: {
+          description: string
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          description?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Update: {
+          description?: string
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      link_redirects: {
+        Row: {
+          created_at: string
+          id: number
+          original_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: number
+          original_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: number
+          original_url?: string
+        }
+        Relationships: []
+      }
+      related_categories: {
+        Row: {
+          created_at: string
+          id: string
+          serial_number: number
+          title: string
+          updated_at: string
+          web_result_page: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          serial_number: number
+          title: string
+          updated_at?: string
+          web_result_page?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          serial_number?: number
+          title?: string
+          updated_at?: string
+          web_result_page?: number
+        }
+        Relationships: []
+      }
+      web_results: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          imported_from: string | null
+          is_sponsored: boolean
+          logo_url: string | null
+          offer_name: string
+          original_link: string
+          serial_number: number
+          title: string
+          updated_at: string
+          web_result_page: number
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          id?: string
+          imported_from?: string | null
+          is_sponsored?: boolean
+          logo_url?: string | null
+          offer_name: string
+          original_link: string
+          serial_number: number
+          title: string
+          updated_at?: string
+          web_result_page: number
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          imported_from?: string | null
+          is_sponsored?: boolean
+          logo_url?: string | null
+          offer_name?: string
+          original_link?: string
+          serial_number?: number
+          title?: string
+          updated_at?: string
+          web_result_page?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
