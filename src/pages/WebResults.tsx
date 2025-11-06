@@ -76,7 +76,7 @@ const WebResults = () => {
             </Button>
           </Link>
           <Link to="/landing" className="text-2xl font-bold text-primary">
-            TopUniversitiesTerrain
+            Topsports
           </Link>
         </div>
       </header>
