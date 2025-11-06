@@ -106,9 +106,16 @@ const WebResults = () => {
                         </span>
                         <span className="text-xs text-muted-foreground">Sponsored</span>
                       </div>
-                      <h3 className="text-xl font-semibold text-foreground mb-1">
-                        {result.offer_name}
-                      </h3>
+                      <a
+                        href={result.original_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        <h3 className="text-xl font-semibold text-foreground mb-1">
+                          {result.offer_name}
+                        </h3>
+                      </a>
                       <div className="text-sm text-primary mb-2">
                         {result.title}
                       </div>
@@ -151,9 +158,16 @@ const WebResults = () => {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
-                      <h3 className="text-lg font-semibold text-foreground mb-1">
-                        {result.offer_name}
-                      </h3>
+                      <a
+                        href={result.original_link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="hover:underline"
+                      >
+                        <h3 className="text-lg font-semibold text-foreground mb-1">
+                          {result.offer_name}
+                        </h3>
+                      </a>
                       <div className="text-sm text-muted-foreground mb-1">
                         {result.title}
                       </div>
