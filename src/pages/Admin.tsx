@@ -1,6 +1,7 @@
 import { LandingPageEditor } from "@/components/admin/LandingPageEditor";
 import { CategoriesEditor } from "@/components/admin/CategoriesEditor";
 import { WebResultsEditor } from "@/components/admin/WebResultsEditor";
+import { ClickTrackingDashboard } from "@/components/admin/ClickTrackingDashboard";
 
 const Admin = () => {
   return (
@@ -35,6 +36,14 @@ const Admin = () => {
               Sponsored & Web Results
             </h2>
             <WebResultsEditor />
+          </section>
+
+          {/* Click Tracking Section */}
+          <section id="click-tracking" className="scroll-mt-20">
+            <h2 className="text-xl font-semibold mb-6 text-foreground border-b pb-2">
+              Click Tracking & Analytics
+            </h2>
+            <ClickTrackingDashboard />
           </section>
         </div>
       </main>

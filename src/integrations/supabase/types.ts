@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      click_tracking: {
+        Row: {
+          city: string | null
+          clicked_item_id: string
+          clicked_item_type: string
+          country_code: string | null
+          created_at: string
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          referrer: string | null
+          screen_resolution: string | null
+          session_id: string | null
+          timestamp: string
+          user_agent: string | null
+        }
+        Insert: {
+          city?: string | null
+          clicked_item_id: string
+          clicked_item_type: string
+          country_code?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          referrer?: string | null
+          screen_resolution?: string | null
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+        }
+        Update: {
+          city?: string | null
+          clicked_item_id?: string
+          clicked_item_type?: string
+          country_code?: string | null
+          created_at?: string
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          referrer?: string | null
+          screen_resolution?: string | null
+          session_id?: string | null
+          timestamp?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       landing_page: {
         Row: {
           description: string
@@ -79,6 +127,44 @@ export type Database = {
           web_result_page?: number
         }
         Relationships: []
+      }
+      web_result_countries: {
+        Row: {
+          allowed_countries: string[] | null
+          backlink_url: string | null
+          created_at: string
+          id: string
+          is_worldwide: boolean
+          updated_at: string
+          web_result_id: string
+        }
+        Insert: {
+          allowed_countries?: string[] | null
+          backlink_url?: string | null
+          created_at?: string
+          id?: string
+          is_worldwide?: boolean
+          updated_at?: string
+          web_result_id: string
+        }
+        Update: {
+          allowed_countries?: string[] | null
+          backlink_url?: string | null
+          created_at?: string
+          id?: string
+          is_worldwide?: boolean
+          updated_at?: string
+          web_result_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "web_result_countries_web_result_id_fkey"
+            columns: ["web_result_id"]
+            isOneToOne: false
+            referencedRelation: "web_results"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       web_results: {
         Row: {

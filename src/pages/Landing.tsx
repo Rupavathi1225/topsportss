@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { trackClick } from "@/lib/tracking";
 
 const Landing = () => {
   const { data: landingPage } = useQuery({
@@ -63,6 +64,7 @@ const Landing = () => {
                 key={category.id}
                 to={`/wr${category.web_result_page}`}
                 className="block"
+                onClick={() => trackClick('category', category.id)}
               >
                 <Button
                   variant="secondary"

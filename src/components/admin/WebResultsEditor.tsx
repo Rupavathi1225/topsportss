@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trash2, Plus, Edit } from "lucide-react";
+import { Trash2, Plus, Edit, Globe } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -24,6 +24,20 @@ import {
 } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { countries } from "@/lib/countries";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Badge } from "@/components/ui/badge";
 
 export function WebResultsEditor() {
   const queryClient = useQueryClient();
@@ -40,6 +54,10 @@ export function WebResultsEditor() {
   const [newSerialNumber, setNewSerialNumber] = useState("");
   const [newIsSponsored, setNewIsSponsored] = useState(false);
   const [newImportedFrom, setNewImportedFrom] = useState("");
+  const [newIsWorldwide, setNewIsWorldwide] = useState(true);
+  const [newAllowedCountries, setNewAllowedCountries] = useState<string[]>([]);
+  const [newBacklinkUrl, setNewBacklinkUrl] = useState("");
+  const [countryPopoverOpen, setCountryPopoverOpen] = useState(false);
 
   // Form states for editing
   const [editOfferName, setEditOfferName] = useState("");
@@ -50,6 +68,10 @@ export function WebResultsEditor() {
   const [editSerialNumber, setEditSerialNumber] = useState("");
   const [editIsSponsored, setEditIsSponsored] = useState(false);
   const [editImportedFrom, setEditImportedFrom] = useState("");
+  const [editIsWorldwide, setEditIsWorldwide] = useState(true);
+  const [editAllowedCountries, setEditAllowedCountries] = useState<string[]>([]);
+  const [editBacklinkUrl, setEditBacklinkUrl] = useState("");
+  const [editCountryPopoverOpen, setEditCountryPopoverOpen] = useState(false);
 
   const { data: webResults } = useQuery({
     queryKey: ["web-results-all", selectedWrPage],
@@ -67,18 +89,35 @@ export function WebResultsEditor() {
 
   const addMutation = useMutation({
     mutationFn: async () => {
-      const { error } = await supabase.from("web_results").insert({
-        web_result_page: parseInt(selectedWrPage),
-        offer_name: newOfferName,
-        title: newTitle,
-        description: newDescription,
-        original_link: newLink,
-        logo_url: newLogoUrl || null,
-        serial_number: parseInt(newSerialNumber),
-        is_sponsored: newIsSponsored,
-        imported_from: newImportedFrom || null,
-      });
-      if (error) throw error;
+      const { data: resultData, error: resultError } = await supabase
+        .from("web_results")
+        .insert({
+          web_result_page: parseInt(selectedWrPage),
+          offer_name: newOfferName,
+          title: newTitle,
+          description: newDescription,
+          original_link: newLink,
+          logo_url: newLogoUrl || null,
+          serial_number: parseInt(newSerialNumber),
+          is_sponsored: newIsSponsored,
+          imported_from: newImportedFrom || null,
+        })
+        .select()
+        .single();
+
+      if (resultError) throw resultError;
+
+      // Insert country permissions
+      const { error: countryError } = await supabase
+        .from("web_result_countries")
+        .insert({
+          web_result_id: resultData.id,
+          is_worldwide: newIsWorldwide,
+          allowed_countries: newAllowedCountries,
+          backlink_url: newBacklinkUrl || null,
+        });
+
+      if (countryError) throw countryError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["web-results-all"] });
@@ -141,6 +180,9 @@ export function WebResultsEditor() {
     setNewSerialNumber("");
     setNewIsSponsored(false);
     setNewImportedFrom("");
+    setNewIsWorldwide(true);
+    setNewAllowedCountries([]);
+    setNewBacklinkUrl("");
   };
 
   const startEdit = (result: any) => {
@@ -260,6 +302,82 @@ export function WebResultsEditor() {
                     className="mt-2"
                   />
                 </div>
+                
+                {/* Country Settings */}
+                <div className="border-t pt-4">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <Globe className="w-4 h-4" />
+                    <Label className="text-base font-semibold">Country Access Settings</Label>
+                  </div>
+                  <div className="flex items-center space-x-2 mb-4">
+                    <Checkbox
+                      id="new-worldwide"
+                      checked={newIsWorldwide}
+                      onCheckedChange={(checked) => {
+                        setNewIsWorldwide(!!checked);
+                        if (checked) setNewAllowedCountries([]);
+                      }}
+                    />
+                    <Label htmlFor="new-worldwide">Allow Worldwide Access</Label>
+                  </div>
+                  {!newIsWorldwide && (
+                    <>
+                      <Label>Allowed Countries</Label>
+                      <Popover open={countryPopoverOpen} onOpenChange={setCountryPopoverOpen}>
+                        <PopoverTrigger asChild>
+                          <Button variant="outline" className="w-full justify-start mt-2">
+                            {newAllowedCountries.length > 0
+                              ? `${newAllowedCountries.length} countries selected`
+                              : "Select countries"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[300px] p-0">
+                          <Command>
+                            <CommandInput placeholder="Search countries..." />
+                            <CommandEmpty>No country found.</CommandEmpty>
+                            <CommandGroup className="max-h-64 overflow-auto">
+                              {countries.map((country) => (
+                                <CommandItem
+                                  key={country.code}
+                                  onSelect={() => {
+                                    setNewAllowedCountries(prev =>
+                                      prev.includes(country.code)
+                                        ? prev.filter(c => c !== country.code)
+                                        : [...prev, country.code]
+                                    );
+                                  }}
+                                >
+                                  <Checkbox
+                                    checked={newAllowedCountries.includes(country.code)}
+                                    className="mr-2"
+                                  />
+                                  {country.name}
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {newAllowedCountries.map(code => (
+                          <Badge key={code} variant="secondary">
+                            {countries.find(c => c.code === code)?.name}
+                          </Badge>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                  <div className="mt-4">
+                    <Label>Backlink URL (for blocked countries)</Label>
+                    <Input
+                      value={newBacklinkUrl}
+                      onChange={(e) => setNewBacklinkUrl(e.target.value)}
+                      placeholder="https://alternative-site.com"
+                      className="mt-2"
+                    />
+                  </div>
+                </div>
+                
                 <Button
                   onClick={() => addMutation.mutate()}
                   disabled={

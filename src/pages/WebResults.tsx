@@ -4,6 +4,7 @@ import { useLocation, Link } from "react-router-dom";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { trackClick } from "@/lib/tracking";
 
 const WebResults = () => {
   const location = useLocation();
@@ -39,6 +40,15 @@ const WebResults = () => {
   });
 
   const createMaskedLink = async (originalUrl: string, resultId: string) => {
+    // Track the click
+    const trackingData = await trackClick('web_result', resultId);
+    
+    // Check if country is allowed
+    if (trackingData && !trackingData.allowed && trackingData.backlink) {
+      window.open(trackingData.backlink, '_blank', 'noopener,noreferrer');
+      return;
+    }
+
     // Check if link already exists in redirects
     const { data: existing } = await supabase
       .from("link_redirects")
@@ -47,7 +57,8 @@ const WebResults = () => {
       .maybeSingle();
 
     if (existing) {
-      return `/lid=${existing.id}`;
+      window.open(`/lid=${existing.id}`, '_blank', 'noopener,noreferrer');
+      return;
     }
 
     // Create new redirect
@@ -59,10 +70,11 @@ const WebResults = () => {
 
     if (error) {
       console.error("Error creating redirect:", error);
-      return originalUrl;
+      window.open(originalUrl, '_blank', 'noopener,noreferrer');
+      return;
     }
 
-    return `/lid=${data.id}`;
+    window.open(`/lid=${data.id}`, '_blank', 'noopener,noreferrer');
   };
 
   return (
@@ -111,6 +123,10 @@ const WebResults = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:underline"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          createMaskedLink(result.original_link, result.id);
+                        }}
                       >
                         <h3 className="text-xl font-semibold text-foreground mb-1">
                           {result.offer_name}
@@ -130,7 +146,12 @@ const WebResults = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        <Button variant="default" size="sm" className="gap-2">
+                      <Button variant="default" size="sm" className="gap-2"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          createMaskedLink(result.original_link, result.id);
+                        }}
+                      >
                           <ExternalLink className="w-4 h-4" />
                           Visit Website
                         </Button>
@@ -163,6 +184,10 @@ const WebResults = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="hover:underline"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          createMaskedLink(result.original_link, result.id);
+                        }}
                       >
                         <h3 className="text-lg font-semibold text-foreground mb-1">
                           {result.offer_name}
@@ -179,6 +204,10 @@ const WebResults = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-xs text-primary hover:underline"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          createMaskedLink(result.original_link, result.id);
+                        }}
                       >
                         topsportswin.com/lid={result.id}
                       </a>
