@@ -35,7 +35,7 @@ const Landing = () => {
       <header className="border-b border-primary/30">
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <Link to="/landing" className="text-2xl font-bold text-primary">
-            TopSportsWin
+            TopUniversitiesTerrain
           </Link>
           <Search className="w-6 h-6 text-muted-foreground" />
         </div>
@@ -61,7 +61,7 @@ const Landing = () => {
             {categories?.map((category) => (
               <Link
                 key={category.id}
-                to={`/webresults?wr=${category.web_result_page}`}
+                to={`/wr${category.web_result_page}`}
                 className="block"
               >
                 <Button

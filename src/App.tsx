@@ -20,7 +20,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Navigate to="/landing" replace />} />
           <Route path="/landing" element={<Landing />} />
-          <Route path="/webresults" element={<WebResults />} />
+          <Route path="/wr:page" element={<WebResults />} />
           <Route path="/lid=:id" element={<LinkRedirect />} />
           <Route path="/admin" element={<Admin />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

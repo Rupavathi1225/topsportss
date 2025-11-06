@@ -1,13 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useSearchParams, Link } from "react-router-dom";
+import { useParams, Link } from "react-router-dom";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const WebResults = () => {
-  const [searchParams] = useSearchParams();
-  const wrPage = parseInt(searchParams.get("wr") || "1");
+  const { page } = useParams();
+  const wrPage = parseInt(page || "1");
 
   const { data: sponsoredResults } = useQuery({
     queryKey: ["web-results-sponsored", wrPage],
@@ -75,7 +75,7 @@ const WebResults = () => {
             </Button>
           </Link>
           <Link to="/landing" className="text-2xl font-bold text-primary">
-            TopSportsWin
+            TopUniversitiesTerrain
           </Link>
         </div>
       </header>
