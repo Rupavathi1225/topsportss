@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useParams, Link } from "react-router-dom";
+import { useLocation, Link } from "react-router-dom";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const WebResults = () => {
-  const { page } = useParams();
-  const wrPage = parseInt(page || "1");
+  const location = useLocation();
+  const pageMatch = location.pathname.match(/\/wr(\d+)/);
+  const wrPage = pageMatch ? parseInt(pageMatch[1]) : 1;
 
   const { data: sponsoredResults } = useQuery({
     queryKey: ["web-results-sponsored", wrPage],
