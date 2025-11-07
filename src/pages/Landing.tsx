@@ -3,9 +3,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { Search, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { trackClick } from "@/lib/tracking";
+import { trackClick, trackPageView } from "@/lib/tracking";
+import { useEffect } from "react";
 
 const Landing = () => {
+  useEffect(() => {
+    trackPageView();
+  }, []);
+
   const { data: landingPage } = useQuery({
     queryKey: ["landing-page"],
     queryFn: async () => {

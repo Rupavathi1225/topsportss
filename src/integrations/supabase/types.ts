@@ -24,9 +24,11 @@ export type Database = {
           device_type: string | null
           id: string
           ip_address: string | null
+          page_url: string | null
           referrer: string | null
           screen_resolution: string | null
           session_id: string | null
+          source: string | null
           timestamp: string
           user_agent: string | null
         }
@@ -39,9 +41,11 @@ export type Database = {
           device_type?: string | null
           id?: string
           ip_address?: string | null
+          page_url?: string | null
           referrer?: string | null
           screen_resolution?: string | null
           session_id?: string | null
+          source?: string | null
           timestamp?: string
           user_agent?: string | null
         }
@@ -54,9 +58,11 @@ export type Database = {
           device_type?: string | null
           id?: string
           ip_address?: string | null
+          page_url?: string | null
           referrer?: string | null
           screen_resolution?: string | null
           session_id?: string | null
+          source?: string | null
           timestamp?: string
           user_agent?: string | null
         }
@@ -98,6 +104,48 @@ export type Database = {
           created_at?: string
           id?: number
           original_url?: string
+        }
+        Relationships: []
+      }
+      page_views: {
+        Row: {
+          city: string | null
+          country_code: string | null
+          device_type: string | null
+          id: string
+          ip_address: string | null
+          page_url: string
+          referrer: string | null
+          session_id: string
+          source: string | null
+          timestamp: string
+          user_agent: string | null
+        }
+        Insert: {
+          city?: string | null
+          country_code?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          page_url: string
+          referrer?: string | null
+          session_id: string
+          source?: string | null
+          timestamp?: string
+          user_agent?: string | null
+        }
+        Update: {
+          city?: string | null
+          country_code?: string | null
+          device_type?: string | null
+          id?: string
+          ip_address?: string | null
+          page_url?: string
+          referrer?: string | null
+          session_id?: string
+          source?: string | null
+          timestamp?: string
+          user_agent?: string | null
         }
         Relationships: []
       }

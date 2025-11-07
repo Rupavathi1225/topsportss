@@ -21,7 +21,9 @@ serve(async (req) => {
       clickedItemId,
       sessionId,
       screenResolution,
-      referrer
+      referrer,
+      source = 'direct',
+      pageUrl = '/'
     } = await req.json();
 
     // Get IP and location info
@@ -52,6 +54,8 @@ serve(async (req) => {
         city: city,
         referrer: referrer,
         screen_resolution: screenResolution,
+        source: source,
+        page_url: pageUrl,
       });
 
     if (trackingError) {

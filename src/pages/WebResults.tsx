@@ -4,12 +4,17 @@ import { useLocation, Link } from "react-router-dom";
 import { ArrowLeft, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { trackClick } from "@/lib/tracking";
+import { trackClick, trackPageView } from "@/lib/tracking";
+import { useEffect } from "react";
 
 const WebResults = () => {
   const location = useLocation();
   const pageMatch = location.pathname.match(/\/wr(\d+)/);
   const wrPage = pageMatch ? parseInt(pageMatch[1]) : 1;
+
+  useEffect(() => {
+    trackPageView();
+  }, [wrPage]);
 
   const { data: sponsoredResults } = useQuery({
     queryKey: ["web-results-sponsored", wrPage],
