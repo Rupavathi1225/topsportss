@@ -6,6 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Monitor, Smartphone, Globe, MapPin, Clock, MousePointerClick } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
+import { ClickBreakdownDialog } from "./ClickBreakdownDialog";
+import { getCountryName } from "@/lib/countryNames";
 
 interface SessionAnalytics {
   session_id: string;
@@ -17,19 +21,54 @@ interface SessionAnalytics {
   total_clicks: number;
   category_clicks: number;
   web_result_clicks: number;
+  unique_category_clicks: number;
+  unique_web_result_clicks: number;
   last_active: string;
 }
 
+interface ClickDetail {
+  id: string;
+  timestamp: string;
+  clicked_item_id: string;
+  clicked_item_type: string;
+  page_url: string;
+}
+
 export const ClickTrackingDashboard = () => {
-  const { data: sessionData, isLoading } = useQuery({
-    queryKey: ["session-analytics"],
+  const [countryFilter, setCountryFilter] = useState<string>("all");
+  const [sourceFilter, setSourceFilter] = useState<string>("all");
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<string>("");
+  const [selectedClickType, setSelectedClickType] = useState<'category' | 'web_result'>('category');
+  const { data: allClicksData } = useQuery({
+    queryKey: ["all-clicks-data"],
     queryFn: async () => {
-      // Get aggregated session data
-      const { data: clicks, error: clicksError } = await supabase
+      const { data: clicks, error } = await supabase
         .from("click_tracking")
         .select("*")
         .order("timestamp", { ascending: false });
       
+      if (error) throw error;
+      return clicks;
+    },
+  });
+
+  const { data: sessionData, isLoading } = useQuery({
+    queryKey: ["session-analytics", countryFilter, sourceFilter],
+    queryFn: async () => {
+      let query = supabase
+        .from("click_tracking")
+        .select("*")
+        .order("timestamp", { ascending: false });
+      
+      if (countryFilter !== "all") {
+        query = query.eq("country_code", countryFilter);
+      }
+      if (sourceFilter !== "all") {
+        query = query.eq("source", sourceFilter);
+      }
+
+      const { data: clicks, error: clicksError } = await query;
       if (clicksError) throw clicksError;
 
       const { data: pageViews, error: pageViewsError } = await supabase
@@ -54,6 +93,8 @@ export const ClickTrackingDashboard = () => {
             total_clicks: 0,
             category_clicks: 0,
             web_result_clicks: 0,
+            unique_category_clicks: 0,
+            unique_web_result_clicks: 0,
             last_active: click.timestamp,
           });
         }
@@ -66,10 +107,20 @@ export const ClickTrackingDashboard = () => {
           session.web_result_clicks++;
         }
         
-        // Update last active if this click is more recent
         if (new Date(click.timestamp) > new Date(session.last_active)) {
           session.last_active = click.timestamp;
         }
+      });
+
+      // Calculate unique clicks per session
+      sessionMap.forEach((session, sessionId) => {
+        const sessionClicks = clicks?.filter(c => c.session_id === sessionId) || [];
+        session.unique_category_clicks = new Set(
+          sessionClicks.filter(c => c.clicked_item_type === 'category').map(c => c.clicked_item_id)
+        ).size;
+        session.unique_web_result_clicks = new Set(
+          sessionClicks.filter(c => c.clicked_item_type === 'web_result').map(c => c.clicked_item_id)
+        ).size;
       });
 
       // Add page views count
@@ -84,6 +135,22 @@ export const ClickTrackingDashboard = () => {
       );
     },
   });
+
+  // Get unique countries and sources for filters
+  const uniqueCountries = [...new Set(allClicksData?.map(c => c.country_code))].sort();
+  const uniqueSources = [...new Set(allClicksData?.map(c => c.source))].sort();
+
+  const getSessionClicks = (sessionId: string, type: 'category' | 'web_result'): ClickDetail[] => {
+    return allClicksData?.filter(
+      c => c.session_id === sessionId && c.clicked_item_type === type
+    ) || [];
+  };
+
+  const openBreakdown = (sessionId: string, type: 'category' | 'web_result') => {
+    setSelectedSession(sessionId);
+    setSelectedClickType(type);
+    setBreakdownOpen(true);
+  };
 
   const { data: stats } = useQuery({
     queryKey: ["click-stats"],
@@ -122,8 +189,51 @@ export const ClickTrackingDashboard = () => {
     return <div className="text-center py-8">Loading tracking data...</div>;
   }
 
+  if (isLoading) {
+    return <div className="text-center py-8">Loading tracking data...</div>;
+  }
+
   return (
     <div className="space-y-6">
+      {/* Filters */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Filters</h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium mb-2 block">Country</label>
+            <Select value={countryFilter} onValueChange={setCountryFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Countries</SelectItem>
+                {uniqueCountries.map((code) => (
+                  <SelectItem key={code} value={code}>
+                    {getCountryName(code)} ({code})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium mb-2 block">Source</label>
+            <Select value={sourceFilter} onValueChange={setSourceFilter}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sources</SelectItem>
+                {uniqueSources.map((source) => (
+                  <SelectItem key={source} value={source}>
+                    {source}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </Card>
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
         <Card className="p-4">
@@ -218,8 +328,13 @@ export const ClickTrackingDashboard = () => {
                       {session.session_id.substring(0, 8)}...
                     </TableCell>
                     <TableCell className="text-xs font-mono">{session.ip_address}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{session.country_code}</Badge>
+                     <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <Badge variant="outline">{session.country_code}</Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {getCountryName(session.country_code)}
+                        </span>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary">{session.source}</Badge>
@@ -237,14 +352,48 @@ export const ClickTrackingDashboard = () => {
                     <TableCell className="text-center">{session.page_views}</TableCell>
                     <TableCell className="text-center font-semibold">{session.total_clicks}</TableCell>
                     <TableCell>
-                      <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">
-                        Total: {session.category_clicks}
-                      </Badge>
+                      {session.category_clicks > 0 ? (
+                        <div className="flex flex-col gap-2">
+                          <Badge className="bg-green-500/10 text-green-700 dark:text-green-400 w-fit">
+                            Total: {session.category_clicks}
+                          </Badge>
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs"
+                            onClick={() => openBreakdown(session.session_id, 'category')}
+                          >
+                            ▼ View breakdown
+                          </Button>
+                          <Badge variant="outline" className="w-fit">
+                            Unique: {session.unique_category_clicks}
+                          </Badge>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">0</span>
+                      )}
                     </TableCell>
                     <TableCell>
-                      <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400">
-                        Total: {session.web_result_clicks}
-                      </Badge>
+                      {session.web_result_clicks > 0 ? (
+                        <div className="flex flex-col gap-2">
+                          <Badge className="bg-orange-500/10 text-orange-700 dark:text-orange-400 w-fit">
+                            Total: {session.web_result_clicks}
+                          </Badge>
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs"
+                            onClick={() => openBreakdown(session.session_id, 'web_result')}
+                          >
+                            ▼ View breakdown
+                          </Button>
+                          <Badge variant="outline" className="w-fit">
+                            Unique: {session.unique_web_result_clicks}
+                          </Badge>
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">0</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-xs">
                       {format(new Date(session.last_active), 'MM/dd/yyyy HH:mm:ss')}
@@ -256,6 +405,15 @@ export const ClickTrackingDashboard = () => {
           </div>
         </div>
       </Card>
+
+      {/* Click Breakdown Dialog */}
+      <ClickBreakdownDialog
+        open={breakdownOpen}
+        onOpenChange={setBreakdownOpen}
+        sessionId={selectedSession}
+        clickType={selectedClickType}
+        clicks={getSessionClicks(selectedSession, selectedClickType)}
+      />
     </div>
   );
 };
